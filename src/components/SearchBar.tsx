@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { FunctionComponent, ChangeEvent, KeyboardEvent } from "react";
-import fetchDropdownContent from "./debounce";
+import fetchDropdownContent from "./fetchDropdownContent";
 import "./searchBar.css";
 
 interface Book {
@@ -15,7 +15,9 @@ const SearchBar: FunctionComponent = () => {
   const [isDropdownVisible, setIsDropdownVisible] = useState<boolean>(false);
 
   // Debounced function to fetch dropdown
-  const fetchSearches = useCallback(fetchDropdownContent(setDropdown), []);
+  const fetchSearches = useCallback(async (searchedText: string) => {
+    await fetchDropdownContent(searchedText)?.then((books: Book[]) => setDropdown(books));
+  }, []);
 
   useEffect(() => {
     fetchSearches(searchText);

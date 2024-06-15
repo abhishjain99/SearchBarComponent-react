@@ -1,7 +1,7 @@
 import axios from "axios";
 import debounce from "lodash/debounce";
 
-const fetchDropdownContent = (setDropdown: any) => debounce(async (searchedText: string) => {
+const fetchDropdownContent = debounce(async (searchedText: string) => {
     if (searchedText) {
       try {
         const response = await axios.get(
@@ -11,12 +11,13 @@ const fetchDropdownContent = (setDropdown: any) => debounce(async (searchedText:
           id: item.id,
           title: item.volumeInfo.title,
         })) ?? [];
-        setDropdown(books);
+        return books;
       } catch (error) {
         console.error("Error fetching dropdown content:", error);
+        return [];
       }
     } else {
-      setDropdown([]);
+      return [];
     }
   }, 300);
 

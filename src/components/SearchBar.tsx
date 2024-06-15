@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { FunctionComponent, ChangeEvent, KeyboardEvent } from "react";
-import fetchDropdownContent from "./fetchDropdownContent";
+// import fetchDropdownContent, { Book } from "./fetchDropdownContent";
 import "./searchBar.css";
+import axios from "axios";
+import { debounce, throttle } from "lodash";
 
-interface Book {
+export interface Book {
   id: string;
   title: string;
 }
@@ -15,13 +17,49 @@ const SearchBar: FunctionComponent = () => {
   const [isDropdownVisible, setIsDropdownVisible] = useState<boolean>(false);
 
   // Debounced function to fetch dropdown
-  const fetchSearches = useCallback(async (searchedText: string) => {
-    await fetchDropdownContent(searchedText)?.then((books: Book[]) => setDropdown(books));
-  }, []);
+  const debouncedFetchSearches = useCallback(debounce(async (searchedText: string) => {
+    if (searchedText) {
+      try {
+        const response = await axios.get(
+          `https://www.googleapis.com/books/v1/volumes?q=${searchedText}&startIndex=0&maxResults=20`
+        );
+        const books = response.data.items?.map((item: any) => ({
+          id: item.id,
+          title: item.volumeInfo.title,
+        })) ?? [];
+        setDropdown(books);
+      } catch (error) {
+        console.error("Error fetching dropdown content:", error);
+      }
+    } else {
+      setDropdown([]);
+    }
+  }, 300), []);
+
+  // Throttled function to fetch dropdown
+  const throttledFetchSearches = useCallback(throttle(async (searchedText: string) => {
+    if (searchedText) {
+      try {
+        const response = await axios.get(
+          `https://www.googleapis.com/books/v1/volumes?q=${searchedText}&startIndex=0&maxResults=20`
+        );
+        const books = response.data.items?.map((item: any) => ({
+          id: item.id,
+          title: item.volumeInfo.title,
+        })) ?? [];
+        setDropdown(books);
+      } catch (error) {
+        console.error("Error fetching dropdown content:", error);
+      }
+    } else {
+      setDropdown([]);
+    }
+  }, 1000), []);
 
   useEffect(() => {
-    fetchSearches(searchText);
-  }, [searchText, fetchSearches]);
+    debouncedFetchSearches(searchText); // starts searching after 300ms of typing stopped
+    // throttledFetchSearches(searchText); // searches every 1000ms
+  }, [searchText, debouncedFetchSearches]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
@@ -34,9 +72,7 @@ const SearchBar: FunctionComponent = () => {
         setSearchIndex((prevIndex) => (prevIndex + 1) % dropdown.length);
         break;
       case "ArrowUp":
-        setSearchIndex(
-          (prevIndex) => (prevIndex - 1 + dropdown.length) % dropdown.length
-        );
+        setSearchIndex((prevIndex) => (prevIndex - 1 + dropdown.length) % dropdown.length);
         break;
       case "Enter":
         if (searchIndex >= 0) {

@@ -1,8 +1,9 @@
 // 1. displays dropdown when typing
 // 2. selects a book on click
 // 3. navigates dropdown with keyboard
+// 4. handleblur
 
-import React from 'react';
+import React, { act } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import axios from 'axios';
@@ -26,7 +27,7 @@ describe('SearchBarComponent', () => {
     render(<SearchBarComponent />);
 
     const input = screen.getByRole('bookinput');
-    fireEvent.change(input, { target: { value: 'Harry Potter' } });
+    act(() => {fireEvent.change(input, { target: { value: 'Harry Potter' } })});
 
     await waitFor(() => {
       expect(screen.getByText('Harry Potter and the Deathly Hallows')).toBeInTheDocument();
@@ -53,7 +54,7 @@ describe('SearchBarComponent', () => {
       expect(screen.getByText('Harry Potter and the Deathly Hallows')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Harry Potter and the Deathly Hallows'));
+    act(() => {fireEvent.click(screen.getByText('Harry Potter and the Deathly Hallows'))});
     expect(input).toHaveValue('Harry Potter and the Deathly Hallows');
   });
 
@@ -70,7 +71,7 @@ describe('SearchBarComponent', () => {
     render(<SearchBarComponent />);
 
     const input = screen.getByRole('bookinput');
-    fireEvent.change(input, { target: { value: 'Harry Potter' } });
+    act(() => {fireEvent.change(input, { target: { value: 'Harry Potter' } })});
 
     await waitFor(() => {
       expect(screen.getByText('Harry Potter and the Deathly Hallows')).toBeInTheDocument();
@@ -81,5 +82,33 @@ describe('SearchBarComponent', () => {
     fireEvent.keyDown(input, { key: 'Enter' });
 
     expect(input).toHaveValue('Harry Potter and the Prisoner of Azkaban');
+  });
+  
+  it('hides dropdown when clicked outside input', async () => {
+    mockedAxios.get.mockResolvedValue({
+      data: {
+        items: [
+          { id: '1', volumeInfo: { title: 'Harry Potter and the Deathly Hallows' } },
+          { id: '2', volumeInfo: { title: 'Harry Potter and the Prisoner of Azkaban' } },
+        ],
+      },
+    });
+
+    render(<SearchBarComponent />);
+
+    const input = screen.getByRole('bookinput');
+    act(() => {fireEvent.change(input, { target: { value: 'Harry Potter' } })});
+
+    await waitFor(() => {
+      expect(screen.getByText('Harry Potter and the Deathly Hallows')).toBeInTheDocument();
+      expect(screen.getByText('Harry Potter and the Prisoner of Azkaban')).toBeInTheDocument();
+    });
+
+    fireEvent.blur(input);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Harry Potter and the Deathly Hallows')).not.toBeInTheDocument();
+      expect(screen.queryByText('Harry Potter and the Prisoner of Azkaban')).not.toBeInTheDocument();
+    });
   });
 });

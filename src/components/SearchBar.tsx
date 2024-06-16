@@ -3,7 +3,9 @@ import { FunctionComponent, ChangeEvent, KeyboardEvent } from "react";
 // import fetchDropdownContent, { Book } from "./fetchDropdownContent";
 import "./searchBar.css";
 import axios from "axios";
-import { debounce, throttle } from "lodash";
+// import { debounce, throttle } from "lodash";
+import debounce from "./debounce";
+import throttle from "./throttle";
 
 export interface Book {
   id: string;

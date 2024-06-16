@@ -31,7 +31,9 @@ const SearchBar: FunctionComponent = () => {
         })) ?? [];
         setDropdown(books);
       } catch (error) {
-        console.error("Error fetching dropdown content:", error);
+        setDropdown([]);
+        alert("We are not able to find the book");
+        throw new Error("Error fetching dropdown content: "+ error);
       }
     } else {
       setDropdown([]);
@@ -51,7 +53,9 @@ const SearchBar: FunctionComponent = () => {
         })) ?? [];
         setDropdown(books);
       } catch (error) {
-        console.error("Error fetching dropdown content:", error);
+        setDropdown([]);
+        alert("We are not able to find the book");
+        throw new Error("Error fetching dropdown content: "+ error);
       }
     } else {
       setDropdown([]);

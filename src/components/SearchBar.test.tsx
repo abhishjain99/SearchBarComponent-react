@@ -111,4 +111,32 @@ describe('SearchBarComponent', () => {
       expect(screen.queryByText('Harry Potter and the Prisoner of Azkaban')).not.toBeInTheDocument();
     });
   });
+  
+  it('hides dropdown when Escape is clicked', async () => {
+    mockedAxios.get.mockResolvedValue({
+      data: {
+        items: [
+          { id: '1', volumeInfo: { title: 'Harry Potter and the Deathly Hallows' } },
+          { id: '2', volumeInfo: { title: 'Harry Potter and the Prisoner of Azkaban' } },
+        ],
+      },
+    });
+
+    render(<SearchBarComponent />);
+
+    const input = screen.getByRole('bookinput');
+    act(() => {fireEvent.change(input, { target: { value: 'Harry Potter' } })});
+
+    await waitFor(() => {
+      expect(screen.getByText('Harry Potter and the Deathly Hallows')).toBeInTheDocument();
+      expect(screen.getByText('Harry Potter and the Prisoner of Azkaban')).toBeInTheDocument();
+    });
+
+    fireEvent.keyDown(input, { key: 'Escape' });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Harry Potter and the Deathly Hallows')).not.toBeInTheDocument();
+      expect(screen.queryByText('Harry Potter and the Prisoner of Azkaban')).not.toBeInTheDocument();
+    });
+  });
 });
